@@ -13,3 +13,9 @@ def get_filecategory(file_path):
         return "documents"
     if suffix in [".zip"]:
         return "archives"
+    return "other"
+
+def make_target_folder(base_folder, category):
+    target_folder = Path(base_folder) /category
+    target_folder.mkdir(parents=True, exist_ok=True)
+    return target_folder
