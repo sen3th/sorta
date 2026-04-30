@@ -19,3 +19,19 @@ def make_target_folder(base_folder, category):
     target_folder = Path(base_folder) /category
     target_folder.mkdir(parents=True, exist_ok=True)
     return target_folder
+
+def createSafeDestination(target_folder, file_name):
+    destination = Path(target_folder)/file_name
+
+    if not destination.exists():
+        return destination
+    stem = destination.stem
+    suffix = destination.suffix
+    counter = 1
+
+    while True:
+        new_name = f"{stem}_{counter}{suffix}"
+        new_destination = Path(target_folder) / new_name
+        if not new_destination.exists():
+            return new_destination
+        counter += 1
