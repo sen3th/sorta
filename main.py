@@ -48,8 +48,17 @@ def move_file(file_path, inbox_folder):
     shutil.move(str(file_path), str(destination))
     return destination
 
+def log_action(message, log_file="log.log"):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{timestamp}] {message}\n"
+    
+    with open(log_file, "a", encoding= "utf-8") as file:
+        file.write(line)
+
 def process_current_file(inbox_folder):
     inbox_folder = Path(inbox_folder)
     for item in inbox_folder.iterdir():
         if item.is_file():
             destination = move_file(item, inbox_folder)
+            if destination:
+                log_action(f"file {item.name} to {destination}")
