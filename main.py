@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from datetime import datetime
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
@@ -46,3 +47,9 @@ def move_file(file_path, inbox_folder):
     destination = createSafeDestination(target_folder, file_path.name)
     shutil.move(str(file_path), str(destination))
     return destination
+
+def process_current_file(inbox_folder):
+    inbox_folder = Path(inbox_folder)
+    for item in inbox_folder.iterdir():
+        if item.is_file():
+            destination = move_file(item, inbox_folder)
