@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 from datetime import datetime
+import time
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
@@ -62,3 +63,13 @@ def process_current_file(inbox_folder):
             destination = move_file(item, inbox_folder)
             if destination:
                 log_action(f"file {item.name} to {destination}")
+
+def new_file(file_path, inbox_folder):
+    file_path = Path(file_path)
+
+    if not file_path.exists():
+        return
+    time.sleep(1)
+    destination =move_file(file_path, inbox_folder)
+    if destination:
+        log_action(f"file {file_path.name} to {destination}")
