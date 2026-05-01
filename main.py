@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
@@ -35,3 +36,13 @@ def createSafeDestination(target_folder, file_name):
         if not new_destination.exists():
             return new_destination
         counter += 1
+        
+def move_file(file_path, inbox_folder):
+    file_path = Path(file_path)
+    if not file_path.is_file():
+        return None
+    category = get_filecategory(file_path)
+    target_folder = make_target_folder(inbox_folder, category)
+    destination = createSafeDestination(target_folder, file_path.name)
+    shutil.move(str(file_path), str(destination))
+    return destination
