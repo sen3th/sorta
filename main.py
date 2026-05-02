@@ -2,6 +2,30 @@ from pathlib import Path
 import shutil
 from datetime import datetime
 import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+class InboxHandler(FileSystemEventHandler):
+    def __init__(self, inbox_folder):
+        self.inbox_folder = inbox_folder
+    def on_created(self, event):
+        if not event.is_directory:
+            new_file(event.src_path, self.inbox_folder)
+
+def startWatcher(inbox_folder):
+    inbox_folder = Path(inbox_folder)
+    handler = InboxHandler(inbox_folder)
+    observer = Observer()
+    observer.schedule(handler, str(inbox_folder), recursive=False)
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+
+    observer.join()
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
