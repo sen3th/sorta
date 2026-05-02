@@ -19,6 +19,8 @@ def startWatcher(inbox_folder):
     observer.schedule(handler, str(inbox_folder), recursive=False)
     observer.start()
 
+    print(f"watching for new files")
+
     try:
         while True:
             time.sleep(1)
