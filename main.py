@@ -32,15 +32,15 @@ def startWatcher(inbox_folder):
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
 
-    if suffix in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+    if suffix in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]:
         return "images"
     if suffix in [".pdf"]:
         return "pdfs"
-    if suffix in [".mp4"]:
+    if suffix in [".mp4", ".mov", ".avi", ".mkv"]:
         return "videos"
-    if suffix in [".txt", ".docx"]:
+    if suffix in [".txt", ".docx", ".doc", ".md"]:
         return "documents"
-    if suffix in [".zip"]:
+    if suffix in [".zip", ".rar", ".7z", ".tar", ".gz"]:
         return "archives"
     return "other"
 
