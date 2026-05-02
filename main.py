@@ -23,20 +23,20 @@ def startWatcher(inbox_folder):
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        observer.stop()
+        observer.stop() 
 
     observer.join()
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
 
-    if suffix in [".jpg", "jpeg", ".png", ".gif", "webp"]:
+    if suffix in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
         return "images"
     if suffix in [".pdf"]:
         return "pdfs"
-    if suffix in ["mp4"]:
+    if suffix in [".mp4"]:
         return "videos"
-    if suffix in [".txt", "docx"]:
+    if suffix in [".txt", ".docx"]:
         return "documents"
     if suffix in [".zip"]:
         return "archives"
@@ -97,3 +97,9 @@ def new_file(file_path, inbox_folder):
     destination =move_file(file_path, inbox_folder)
     if destination:
         log_action(f"file {file_path.name} to {destination}")
+
+if __name__ == "__main__":
+    inbox_folder = Path("inbox")
+    inbox_folder.mkdir(exist_ok=True)
+    process_current_file(inbox_folder)
+    startWatcher(inbox_folder)
