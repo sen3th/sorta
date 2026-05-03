@@ -120,12 +120,47 @@ if __name__ == "__main__":
     inbox_folder.mkdir(exist_ok=True)
     LOG_FILE = args.log
     
-    def handle_sigterm(signum, frame):
-        print("shutting down")
-        sys.exit(0)
+def handle_sigterm(signum, frame):
+    print("shutting down")
+    sys.exit(0)
 
-    signal.signal(signal.SIGINT, handle_sigterm)
-    signal.signal(signal.SIGTERM, handle_sigterm)
+signal.signal(signal.SIGINT, handle_sigterm)
+signal.signal(signal.SIGTERM, handle_sigterm)
 
-    process_current_file(inbox_folder)
-    startWatcher(inbox_folder)
+process_current_file(inbox_folder)
+startWatcher(inbox_folder)
+
+def is_file_complete(path, stable_seconds=2, timeout=30):
+    path = Path(path)
+    start = time.time()
+    last_size = -1
+    while time.time() - start < timeout:
+        if not path.exists():
+            return False
+        size = path.stat().st_size
+        if size == last_size:
+            
+            stable_start = time.time()
+            while time.time() - stable_start < stable_seconds:
+                time.sleep(0.5)
+                if not path.exists():
+                    return False
+                if path.stat().st_size != size:
+                        last_size = path.stat().st_size
+                        break
+            else:
+                return True
+        last_size = size
+        time.sleep(0.5)
+    return False
+
+def new_file(file_path, inbox_folder):
+    file_path = Path(file_path)
+    if not file_path.exists():
+        return
+    if not is_file_complete(file_path):
+        log_action(f"skipped incomplete file {file_path.name}")
+        return
+    destination = move_file(file_path, inbox_folder)
+    if destination:
+        log_action(f"file moved {file_path.name} to {destination}")
