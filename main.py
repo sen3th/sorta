@@ -4,6 +4,9 @@ from datetime import datetime
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import argparse
+import signal
+import sys
 
 class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder):
@@ -103,5 +106,26 @@ def new_file(file_path, inbox_folder):
 if __name__ == "__main__":
     inbox_folder = Path("inbox")
     inbox_folder.mkdir(exist_ok=True)
+    process_current_file(inbox_folder)
+    startWatcher(inbox_folder)
+
+def parse_arguments():
+    p = argparse.ArgumentParser(description="watch /sort inbox")
+    p.add_argument("-i", default="inbox", help="folder to watch")
+    p.add_argument("-l", default="log.log", help="log file path")
+
+if __name__ == "__main__":
+    args = parse_arguments()
+    inbox_folder = Path(args.inbox)
+    inbox_folder.mkdir(exist_ok=True)
+    LOG_FILE = args.log
+    
+    def handle_sigterm(signum, frame):
+        print("shutting down")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handle_sigterm)
+    signal.signal(signal.SIGTERM, handle_sigterm)
+
     process_current_file(inbox_folder)
     startWatcher(inbox_folder)
