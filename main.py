@@ -24,28 +24,17 @@ class InboxHandler(FileSystemEventHandler):
         if destination:
             self.logger(f"moved file {file_path.name} to  {destination}")
 
-def startWatcher(inbox_folder):
-    inbox_folder = Path(inbox_folder)
-    handler = InboxHandler(inbox_folder)
+def startWatcher(inbox_folder, logger):
+    handler = InboxHandler(inbox_folder, logger)
     observer = Observer()
-    observer.schedule(handler, str(inbox_folder), recursive=False)
+    observer.schedule(handler, str(Path(inbox_folder)), recursive=False)
     observer.start()
     return observer
 
-def stopWatcher(observer):
+def stop_watcher(observer):
     if observer:
         observer.stop()
         observer.join()
-
-    print(f"watching for new files")
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop() 
-
-    observer.join()
 
 def get_filecategory(file_path):
     suffix = Path(file_path).suffix.lower()
