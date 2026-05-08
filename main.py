@@ -190,3 +190,38 @@ class App:
         folder = filedialog.askdirectory()
         if folder:
             self.folder_var.set(folder)
+
+    def process_exsisting_files(self):
+        inbox_folder = Path(inbox_folder)
+        inbox_folder.mkdir(parents=True, exist_ok=True)
+        for item in inbox_folder.interdir():
+            if item.is_file():
+                destination = move_file(item, inbox_folder)
+                if destination:
+                    self.log(f"moved {item.name} to {destination}")
+
+    def start_clicked(self):
+        if self.observer is not None:
+            messagebox.showinfo("Runnning", "watcher already running")
+            return
+        
+        folder = Path(self.folder_var.get()).expanduser()
+        folder.mkdir(parents=True, exist_ok=True)
+
+        self.process_existing_files(folder)
+        folder.mkdir(parents=True, exist_ok=True)
+
+        self.status_var.set(f"watching {folder}")
+        self.start_button.config(state="disabled")
+        self.stop_button.config(state="normal")
+        self.log(f"stated watching {folder}")
+
+    def stop_clicked(self):
+        if self.observer is None:
+            return
+        stop_watcher(self.observer)
+        self.observer = None
+        self.status_var.set("status: stopped")
+        self.start_button.config(state="normal")
+        self.stop_button.config(state="disabled")
+        self.log("Stopped watching.")
