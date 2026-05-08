@@ -225,3 +225,8 @@ class App:
         self.start_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.log("Stopped watching.")
+
+    def on_close(self):
+        if self.observer is not None:
+            self.stop_clicked()
+        self.root.destroy()
