@@ -21,6 +21,12 @@ def startWatcher(inbox_folder):
     observer = Observer()
     observer.schedule(handler, str(inbox_folder), recursive=False)
     observer.start()
+    return observer
+
+def stopWatcher(observer):
+    if observer:
+        observer.stop()
+        observer.join()
 
     print(f"watching for new files")
 
