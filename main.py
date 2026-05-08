@@ -178,3 +178,15 @@ class App:
         self.log_box.pack(fill="both", expand=True, padx=12, pady=(0,12))
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
     
+    def log(self, message):
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{ts}] {message}"
+        self.log_box.insert(tk.END, line + "\n")
+        self.log_box.see(tk.END)
+        with open(self.log_file, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    
+    def browse_folder(self):
+        folder = filedialog.askdirectory()
+        if folder:
+            self.folder_var.set(folder)
