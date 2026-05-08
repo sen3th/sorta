@@ -12,8 +12,17 @@ class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder):
         self.inbox_folder = inbox_folder
     def on_created(self, event):
-        if not event.is_directory:
-            new_file(event.src_path, self.inbox_folder)
+        if event.is_directory:
+            return
+        
+        file_path = Path(event.src_path)
+
+        if not is_file_complete(file_path):
+            self.logger(f"skipped incompleted file: {file_path.name}")
+            return
+        destination = move_file(file_path, self.inbox_folder)
+        if destination:
+            self.logger(f"moved file {file_path.name} to  {destination}")
 
 def startWatcher(inbox_folder):
     inbox_folder = Path(inbox_folder)
