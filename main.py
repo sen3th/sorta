@@ -140,3 +140,41 @@ def new_file(file_path, inbox_folder):
     destination = move_file(file_path, inbox_folder)
     if destination:
         log_action(f"file moved {file_path.name} to {destination}")
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Inbox folder sorter")
+        self.inbox_geometry("720x500")
+
+        self.observer = None
+        self.log_file = "log.log"
+
+        self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
+        self.status_var = tk.StringVar(value="status: none")
+        top = tk.Frame(root)
+        top.pack(fill="x", padx=12, pady=12)
+
+        tk.Label(top, text="watch folder").pack(anchor="w")
+        row = tk.Frame(top)
+        row.pack(fill="x", pady=(4, 0))
+
+        self.folder_entry = tk.Entry(row, textvariable=self.folder_var)
+        self.folder_entry.pack(side="left", fill="x", expand=True)
+
+        tk.Button(row, text="Browse", command=self.browse_folder).pack(side="left", padx=(8,0))
+
+        control = tk.Frame(root)
+        control.pack(fill="x", padx=12, pady=(0, 10))
+        
+        self.start_button = tk.Button(control, text="start", command=self.start_clicked)
+        self.start_button.pack(side="left")
+        self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled")
+        self.stop_button.pack(side="left", padx=8)
+
+        tk.label(control, textvariable=self.status_var).pack(side="left", padx=12)
+
+        self.log_box = scrolledtext.ScrolledText(root, height=20)
+        self.log_box.pack(fill="both", expand=True, padx=12, pady=(0,12))
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+    
