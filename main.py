@@ -4,9 +4,8 @@ from datetime import datetime
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import argparse
-import signal
-import sys
+import tkinter as tk
+from tkinter import filedialog, messagebox, scrolledtext
 
 class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder):
