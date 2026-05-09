@@ -145,7 +145,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("Inbox folder sorter")
-        self.inbox_geometry("720x500")
+        self.root.geometry("720x500")
 
         self.observer = None
         self.log_file = "log.log"
