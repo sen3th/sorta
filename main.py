@@ -181,7 +181,7 @@ class App:
         if folder:
             self.folder_var.set(folder)
 
-    def process_exsisting_files(self, inbox_folder):
+    def process_existing_files(self, inbox_folder):
         inbox_folder = Path(inbox_folder)
         inbox_folder.mkdir(parents=True, exist_ok=True)
         for item in inbox_folder.iterdir():
@@ -204,7 +204,7 @@ class App:
         self.status_var.set(f"watching {folder}")
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
-        self.log(f"stated watching {folder}")
+        self.log(f"started watching {folder}")
 
     def stop_clicked(self):
         if self.observer is None:
