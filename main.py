@@ -160,31 +160,37 @@ class App:
         self.log_file = "log.log"
 
         self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
-        self.status_var = tk.StringVar(value="status: none")
-        top = tk.Frame(root)
-        top.pack(fill="x", padx=12, pady=12)
+        shell = ttk.Frame(root, style="Shell.TFrame", padding=16)
+        shell.pack(fill="both", expand=True)
 
-        tk.Label(top, text="watch folder").pack(anchor="w")
-        row = tk.Frame(top)
-        row.pack(fill="x", pady=(4, 0))
+        ttk.Label(shell, text="sorta", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(shell, text="short all the junk in your download folder ;/", style="Sub.TLabel").pack(anchor="w", pady=(0, 12))
+
+        card = ttk.Frame(shell, style="Card.TFrame", padding=14)
+        card.pack(fill="x", pady=(0, 12))
+
+        ttk.Label(card, text="folder", style="CardLabel.TLabel").pack(anchor="w")
+
+        row = ttk.Frame(card, style="Card.TFrame")
+        row.pack(fill="x", pady=(6, 0))
 
         self.folder_entry = tk.Entry(row, textvariable=self.folder_var)
         self.folder_entry.pack(side="left", fill="x", expand=True)
 
-        tk.Button(row, text="Browse", command=self.browse_folder).pack(side="left", padx=(8,0))
+        tk.Button(row, text="Browse", command=self.browse_folder, style="Secondary.TButton").pack(side="left", padx=(8,0))
 
-        control = tk.Frame(root)
-        control.pack(fill="x", padx=12, pady=(0, 10))
+        control = tk.Frame(shell, style="Shell.TFrame")
+        control.pack(fill="x", pady=(0, 10))
         
-        self.start_button = tk.Button(control, text="start", command=self.start_clicked)
+        self.start_button = tk.Button(control, text="start", command=self.start_clicked, style="Primary.TButton")
         self.start_button.pack(side="left")
-        self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled")
+        self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
-        tk.Label(control, textvariable=self.status_var).pack(side="left", padx=12)
-
-        self.log_box = scrolledtext.ScrolledText(root, height=20)
-        self.log_box.pack(fill="both", expand=True, padx=12, pady=(0,12))
+        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
+        self.status_label.pack(side="left", padx=12)
+        self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10)
+        self.log_box.pack(fill="both", expand=True)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
     
     def log(self, message):
