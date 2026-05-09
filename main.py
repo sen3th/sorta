@@ -131,17 +131,6 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
         time.sleep(0.5)
     return False
 
-def new_file(file_path, inbox_folder):
-    file_path = Path(file_path)
-    if not file_path.exists():
-        return
-    if not is_file_complete(file_path):
-        log_action(f"skipped incomplete file {file_path.name}")
-        return
-    destination = move_file(file_path, inbox_folder)
-    if destination:
-        log_action(f"file moved {file_path.name} to {destination}")
-
 class App:
     def __init__(self, root):
         self.root = root
