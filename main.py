@@ -210,7 +210,7 @@ class App:
         folder.mkdir(parents=True, exist_ok=True)
 
         self.process_existing_files(folder)
-        folder.mkdir(parents=True, exist_ok=True)
+        self.observer = startWatcher(folder, self.log)
 
         self.status_var.set(f"watching {folder}")
         self.start_button.config(state="disabled")
