@@ -137,7 +137,24 @@ class App:
         self.root.title("sorta")
         self.root.geometry("860x560")
         self.root.minsize(400, 300)
-        self.root.configure(bg="#dae0f4")
+        self.root.configure(bg="#f5f6fa")
+
+        self.bg = "#f5f6fa"
+        self.card = "white"
+        self.text = "#1f2937"
+        self.muted = "#6b7280"
+        self.accent = "#16acf2"
+        self.success = "#13aa4b"
+        self.danger = "#da1e1e"
+        self.border = "#dedfe2"
+
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+        self.style.configure("Shell.TFrame", background=self.bg)
+        self.style.configure("Card.TFrame", background=self.card, borderwidth=1, relief="solid")
+        self.style.configure("Title.TLabel", background=self.bg, foreground=self.text)
+        self.style.configure("Sub.TLabel", background=self.bg, foreground=self.muted)
+        self.style.configure("CardLabel.TLabel", background=self.card, foreground=self.text)
 
         self.observer = None
         self.log_file = "log.log"
