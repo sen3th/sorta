@@ -173,7 +173,7 @@ class App:
         self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled")
         self.stop_button.pack(side="left", padx=8)
 
-        tk.label(control, textvariable=self.status_var).pack(side="left", padx=12)
+        tk.Label(control, textvariable=self.status_var).pack(side="left", padx=12)
 
         self.log_box = scrolledtext.ScrolledText(root, height=20)
         self.log_box.pack(fill="both", expand=True, padx=12, pady=(0,12))
@@ -192,10 +192,10 @@ class App:
         if folder:
             self.folder_var.set(folder)
 
-    def process_exsisting_files(self):
+    def process_exsisting_files(self, inbox_folder):
         inbox_folder = Path(inbox_folder)
         inbox_folder.mkdir(parents=True, exist_ok=True)
-        for item in inbox_folder.interdir():
+        for item in inbox_folder.iterdir():
             if item.is_file():
                 destination = move_file(item, inbox_folder)
                 if destination:
