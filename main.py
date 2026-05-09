@@ -134,7 +134,7 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("Inbox folder sorter")
+        self.root.title("sorta")
         self.root.geometry("720x500")
 
         self.observer = None
