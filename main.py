@@ -8,8 +8,9 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
 class InboxHandler(FileSystemEventHandler):
-    def __init__(self, inbox_folder):
-        self.inbox_folder = inbox_folder
+    def __init__(self, inbox_folder, logger):
+        self.inbox_folder = Path(inbox_folder)
+        self.logger = logger
     def on_created(self, event):
         if event.is_directory:
             return
