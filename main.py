@@ -230,3 +230,7 @@ class App:
         if self.observer is not None:
             self.stop_clicked()
         self.root.destroy()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
