@@ -135,7 +135,9 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("sorta")
-        self.root.geometry("720x500")
+        self.root.geometry("860x560")
+        self.root.minsize(400, 300)
+        self.root.configure(bg="#dae0f4")
 
         self.observer = None
         self.log_file = "log.log"
