@@ -5,7 +5,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder, logger):
