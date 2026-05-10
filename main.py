@@ -191,7 +191,7 @@ class App:
         self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
-        self.status_label = ttk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
+        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
         self.status_label.pack(side="left", padx=12)
         self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10)
         self.log_box.pack(fill="both", expand=True)
@@ -230,7 +230,7 @@ class App:
         self.process_existing_files(folder)
         self.observer = startWatcher(folder, self.log)
 
-        self.status_var.set(f"watching {folder}", fg=self.success)
+        self.status_label.config(text=f"watching {folder}", fg=self.success)
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
         self.log(f"started watching {folder}")
@@ -240,7 +240,7 @@ class App:
             return
         stop_watcher(self.observer)
         self.observer = None
-        self.status_var.set("status: stopped", fg=self.danger)
+        self.status_label.config(text="status: stopped", fg=self.danger)
         self.start_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.log("Stopped watching.")
