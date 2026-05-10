@@ -1,2 +1,5 @@
 .vscode
 log.log
+build
+dist
+main.spec
