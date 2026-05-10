@@ -197,6 +197,9 @@ class App:
         self.log_box.pack(fill="both", expand=True)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
     
+    def set_status(self, text, color=None):
+        self.status_label.config(text=text, fg=color or self.muted)
+    
     def log(self, message):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] {message}"
@@ -230,7 +233,7 @@ class App:
         self.process_existing_files(folder)
         self.observer = startWatcher(folder, self.log)
 
-        self.status_label.config(text=f"watching {folder}", fg=self.success)
+        self.set_status(f"watching {folder}", self.success)
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
         self.log(f"started watching {folder}")
@@ -240,7 +243,7 @@ class App:
             return
         stop_watcher(self.observer)
         self.observer = None
-        self.status_label.config(text="status: stopped", fg=self.danger)
+        self.set_status("stopped", self.danger)
         self.start_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.log("Stopped watching.")
