@@ -8,9 +8,13 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 class InboxHandler(FileSystemEventHandler):
-    def __init__(self, inbox_folder, logger):
+    def __init__(self, inbox_folder, logger, on_move, on_skip, on_error):
         self.inbox_folder = Path(inbox_folder)
         self.logger = logger
+        self.on_move = on_move
+        self.on_skip = on_skip
+        self.on_error = on_error
+
     def on_created(self, event):
         if event.is_directory:
             return
@@ -19,13 +23,21 @@ class InboxHandler(FileSystemEventHandler):
 
         if not is_file_complete(file_path):
             self.logger(f"skipped incompleted file: {file_path.name}")
+            self.on_skip()
             return
-        destination = move_file(file_path, self.inbox_folder)
-        if destination:
-            self.logger(f"moved file {file_path.name} to  {destination}")
+        
+        try:
+            destination = move_file(file_path, self.inbox_folder)
+            if destination:
+                self.logger(f"moved file {file_path.name} to  {destination}")
+                self.on_move(destination)
+        except Exception as e:
+            self.logger(f"error occurred while moving file {file_path.name}: {e}")
+            self.on_error()
+            return
 
-def startWatcher(inbox_folder, logger):
-    handler = InboxHandler(inbox_folder, logger)
+def startWatcher(inbox_folder, logger, on_move, on_skip, on_error):
+    handler = InboxHandler(inbox_folder, logger, on_move, on_skip, on_error)
     observer = Observer()
     observer.schedule(handler, str(Path(inbox_folder)), recursive=False)
     observer.start()
@@ -164,6 +176,18 @@ class App:
         self.observer = None
         self.log_file = "log.log"
 
+        self.stats ={
+            "moved": 0,
+            "skipped": 0,
+            "errors": 0,
+            "images": 0,
+            "pdfs": 0,
+            "videos": 0,
+            "documents": 0,
+            "archives": 0,
+            "other": 0,
+        }
+
         self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
         shell = ttk.Frame(root, style="Shell.TFrame", padding=16)
         shell.pack(fill="both", expand=True)
@@ -194,6 +218,14 @@ class App:
 
         self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10, font=("Segoe UI", 11))
         self.status_label.pack(side="left", padx=12)
+        self.stats_label = tk.Label(
+            shell, text="moved: 0, Skipped: 0, errors: 0, images: 0, pdf: 0, videos: 0, documents: 0, archives: 0, Others: 0",
+            bg=self.bg,
+            fg=self.muted,
+            font=("Segoe UI", 10),
+            anchor="w",
+        )
+        self.stats_label.pack(fill="x", pady=(0, 8))
         self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10, font=("Cascadia Code", 10))
         self.log_box.pack(fill="both", expand=True)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -201,6 +233,37 @@ class App:
     def set_status(self, text, color=None):
         self.status_label.config(text=text, fg=color or self.muted)
     
+    def refresh_stats_ui(self):
+        self.stats_label.config(
+            text=(
+                f"moved: {self.stats['moved']}, "
+                f"skipped: {self.stats['skipped']}, "
+                f"errors: {self.stats['errors']}, "
+                f"Images: {self.stats['images']}, "
+                f"pdfs: {self.stats['pdfs']}, "
+                f"videos: {self.stats['videos']}, "
+                f"documents: {self.stats['documents']}, "
+                f"archives: {self.stats['archives']}, "
+                f"other: {self.stats['other']}"
+            )
+        )
+    def record_move(self, destination):
+        self.stats["moved"] += 1
+        category = Path(destination).parent.name.lower()
+        if category in self.stats:
+            self.stats[category] += 1
+        else:
+            self.stats["other"] += 1
+        self.refresh_stats_ui()
+
+    def record_skip(self):
+        self.stats["skipped"] += 1
+        self.refresh_stats_ui()
+
+    def record_error(self):
+        self.stats["errors"] += 1
+        self.refresh_stats_ui()
+
     def log(self, message):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] {message}"
@@ -222,6 +285,7 @@ class App:
                 destination = move_file(item, inbox_folder)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
+                    self.record_move(destination)
 
     def start_clicked(self):
         if self.observer is not None:
@@ -232,7 +296,7 @@ class App:
         folder.mkdir(parents=True, exist_ok=True)
 
         self.process_existing_files(folder)
-        self.observer = startWatcher(folder, self.log)
+        self.observer = startWatcher(folder, self.log, self.record_move, self.record_skip, self.record_error)
 
         self.set_status(f"watching {folder}", self.success)
         self.start_button.config(state="disabled")
