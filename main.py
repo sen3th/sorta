@@ -134,6 +134,7 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
 class App:
     def __init__(self, root):
         self.root = root
+        self.root.tk.call('tk', 'scaling', 2.0)
         self.root.title("sorta")
         self.root.geometry("860x560")
         self.root.minsize(400, 300)
@@ -152,12 +153,12 @@ class App:
         self.style.theme_use("clam")
         self.style.configure("Shell.TFrame", background=self.bg)
         self.style.configure("Card.TFrame", background=self.card, borderwidth=1, relief="solid")
-        self.style.configure("Title.TLabel", background=self.bg, foreground=self.text)
-        self.style.configure("Sub.TLabel", background=self.bg, foreground=self.muted)
-        self.style.configure("CardLabel.TLabel", background=self.card, foreground=self.text)
-        self.style.configure("Primary.TButton", foreground="white", background=self.accent, padding=(12,6))
+        self.style.configure("Title.TLabel", background=self.bg, foreground=self.text, font=("Segoe UI", 16, "bold"))
+        self.style.configure("Sub.TLabel", background=self.bg, foreground=self.muted, font=("Segoe UI", 10))
+        self.style.configure("CardLabel.TLabel", background=self.card, foreground=self.text, font=("Segoe UI", 11, "bold"))
+        self.style.configure("Primary.TButton", foreground="white", background=self.accent, padding=(12,6), font=("Segoe UI", 11, "bold"))
         self.style.map("Primary.TButton", background=[("active", "#1198e0"), ("disabled", "#a3a8b2")])
-        self.style.configure("Secondary.TButton", foreground=self.text, background="#e9e9eb", padding=(12, 6))
+        self.style.configure("Secondary.TButton", foreground=self.text, background="#e9e9eb", padding=(12, 6), font=("Segoe UI", 11))
         self.style.map("Secondary.TButton", background=[("active", "#d1d5db"), ("disabled", "#f8f9fa")])
 
         self.observer = None
@@ -191,9 +192,9 @@ class App:
         self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
-        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
+        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10, font=("Segoe UI", 11))
         self.status_label.pack(side="left", padx=12)
-        self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10)
+        self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10, font=("Cascadia Code", 10))
         self.log_box.pack(fill="both", expand=True)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
     
