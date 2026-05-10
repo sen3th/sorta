@@ -230,7 +230,7 @@ class App:
         self.process_existing_files(folder)
         self.observer = startWatcher(folder, self.log)
 
-        self.status_var.set(f"watching {folder}")
+        self.status_var.set(f"watching {folder}", fg=self.success)
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
         self.log(f"started watching {folder}")
@@ -240,7 +240,7 @@ class App:
             return
         stop_watcher(self.observer)
         self.observer = None
-        self.status_var.set("status: stopped")
+        self.status_var.set("status: stopped", fg=self.danger)
         self.start_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.log("Stopped watching.")
