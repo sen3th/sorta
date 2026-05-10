@@ -6,6 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
+import hashlib
 
 class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder, logger, on_move, on_skip, on_error):
