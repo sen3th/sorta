@@ -168,7 +168,7 @@ class App:
         shell.pack(fill="both", expand=True)
 
         ttk.Label(shell, text="sorta", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(shell, text="short all the junk in your download folder ;/", style="Sub.TLabel").pack(anchor="w", pady=(0, 12))
+        ttk.Label(shell, text="sort all the junk in your download folder ;/", style="Sub.TLabel").pack(anchor="w", pady=(0, 12))
 
         card = ttk.Frame(shell, style="Card.TFrame", padding=14)
         card.pack(fill="x", pady=(0, 12))
