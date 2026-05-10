@@ -144,6 +144,13 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
         time.sleep(0.5)
     return False
 
+def hash(path, chunk_size=65536):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_size), b""):
+            h.update(chunk)
+        return h.hexdigest()
+
 class App:
     def __init__(self, root):
         self.root = root
