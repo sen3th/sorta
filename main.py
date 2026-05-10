@@ -8,9 +8,13 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 class InboxHandler(FileSystemEventHandler):
-    def __init__(self, inbox_folder, logger):
+    def __init__(self, inbox_folder, logger, on_move, on_skip, on_error):
         self.inbox_folder = Path(inbox_folder)
         self.logger = logger
+        self.on_move = on_move
+        self.on_skip = on_skip
+        self.on_error = on_error
+
     def on_created(self, event):
         if event.is_directory:
             return
@@ -19,13 +23,21 @@ class InboxHandler(FileSystemEventHandler):
 
         if not is_file_complete(file_path):
             self.logger(f"skipped incompleted file: {file_path.name}")
+            self.on_skip()
             return
-        destination = move_file(file_path, self.inbox_folder)
-        if destination:
-            self.logger(f"moved file {file_path.name} to  {destination}")
+        
+        try:
+            destination = move_file(file_path, self.inbox_folder)
+            if destination:
+                self.logger(f"moved file {file_path.name} to  {destination}")
+                self.on_move(destination)
+        except Exception as e:
+            self.logger(f"error occurred while moving file {file_path.name}: {e}")
+            self.on_error()
+            return
 
-def startWatcher(inbox_folder, logger):
-    handler = InboxHandler(inbox_folder, logger)
+def startWatcher(inbox_folder, logger, on_move, on_skip, on_error):
+    handler = InboxHandler(inbox_folder, logger, on_move, on_skip, on_error)
     observer = Observer()
     observer.schedule(handler, str(Path(inbox_folder)), recursive=False)
     observer.start()
@@ -134,40 +146,124 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
 class App:
     def __init__(self, root):
         self.root = root
+        self.root.tk.call('tk', 'scaling', 2.0)
         self.root.title("sorta")
-        self.root.geometry("720x500")
+        self.root.geometry("860x560")
+        self.root.minsize(400, 300)
+        self.root.configure(bg="#f5f6fa")
+
+        self.bg = "#f5f6fa"
+        self.card = "white"
+        self.text = "#1f2937"
+        self.muted = "#6b7280"
+        self.accent = "#16acf2"
+        self.success = "#13aa4b"
+        self.danger = "#da1e1e"
+        self.border = "#dedfe2"
+
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+        self.style.configure("Shell.TFrame", background=self.bg)
+        self.style.configure("Card.TFrame", background=self.card, borderwidth=1, relief="solid")
+        self.style.configure("Title.TLabel", background=self.bg, foreground=self.text, font=("Segoe UI", 16, "bold"))
+        self.style.configure("Sub.TLabel", background=self.bg, foreground=self.muted, font=("Segoe UI", 10))
+        self.style.configure("CardLabel.TLabel", background=self.card, foreground=self.text, font=("Segoe UI", 11, "bold"))
+        self.style.configure("Primary.TButton", foreground="white", background=self.accent, padding=(12,6), font=("Segoe UI", 11, "bold"))
+        self.style.map("Primary.TButton", background=[("active", "#1198e0"), ("disabled", "#a3a8b2")])
+        self.style.configure("Secondary.TButton", foreground=self.text, background="#e9e9eb", padding=(12, 6), font=("Segoe UI", 11))
+        self.style.map("Secondary.TButton", background=[("active", "#d1d5db"), ("disabled", "#f8f9fa")])
 
         self.observer = None
         self.log_file = "log.log"
 
+        self.stats ={
+            "moved": 0,
+            "skipped": 0,
+            "errors": 0,
+            "images": 0,
+            "pdfs": 0,
+            "videos": 0,
+            "documents": 0,
+            "archives": 0,
+            "other": 0,
+        }
+
         self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
-        self.status_var = tk.StringVar(value="status: none")
-        top = tk.Frame(root)
-        top.pack(fill="x", padx=12, pady=12)
+        shell = ttk.Frame(root, style="Shell.TFrame", padding=16)
+        shell.pack(fill="both", expand=True)
 
-        tk.Label(top, text="watch folder").pack(anchor="w")
-        row = tk.Frame(top)
-        row.pack(fill="x", pady=(4, 0))
+        ttk.Label(shell, text="sorta", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(shell, text="sort all the junk in your download folder ;/", style="Sub.TLabel").pack(anchor="w", pady=(0, 12))
 
-        self.folder_entry = tk.Entry(row, textvariable=self.folder_var)
+        card = ttk.Frame(shell, style="Card.TFrame", padding=14)
+        card.pack(fill="x", pady=(0, 12))
+
+        ttk.Label(card, text="folder", style="CardLabel.TLabel").pack(anchor="w")
+
+        row = ttk.Frame(card, style="Card.TFrame")
+        row.pack(fill="x", pady=(6, 0))
+
+        self.folder_entry = ttk.Entry(row, textvariable=self.folder_var)
         self.folder_entry.pack(side="left", fill="x", expand=True)
 
-        tk.Button(row, text="Browse", command=self.browse_folder).pack(side="left", padx=(8,0))
+        ttk.Button(row, text="Browse", command=self.browse_folder, style="Secondary.TButton").pack(side="left", padx=(8,0))
 
-        control = tk.Frame(root)
-        control.pack(fill="x", padx=12, pady=(0, 10))
+        control = ttk.Frame(shell, style="Shell.TFrame")
+        control.pack(fill="x", pady=(0, 10))
         
-        self.start_button = tk.Button(control, text="start", command=self.start_clicked)
+        self.start_button = ttk.Button(control, text="start", command=self.start_clicked, style="Primary.TButton")
         self.start_button.pack(side="left")
-        self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled")
+        self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
-        tk.Label(control, textvariable=self.status_var).pack(side="left", padx=12)
-
-        self.log_box = scrolledtext.ScrolledText(root, height=20)
-        self.log_box.pack(fill="both", expand=True, padx=12, pady=(0,12))
+        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10, font=("Segoe UI", 11))
+        self.status_label.pack(side="left", padx=12)
+        self.stats_label = tk.Label(
+            shell, text="moved: 0, Skipped: 0, errors: 0, images: 0, pdf: 0, videos: 0, documents: 0, archives: 0, Others: 0",
+            bg=self.bg,
+            fg=self.muted,
+            font=("Segoe UI", 10),
+            anchor="w",
+        )
+        self.stats_label.pack(fill="x", pady=(0, 8))
+        self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10, font=("Cascadia Code", 10))
+        self.log_box.pack(fill="both", expand=True)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
     
+    def set_status(self, text, color=None):
+        self.status_label.config(text=text, fg=color or self.muted)
+    
+    def refresh_stats_ui(self):
+        self.stats_label.config(
+            text=(
+                f"moved: {self.stats['moved']}, "
+                f"skipped: {self.stats['skipped']}, "
+                f"errors: {self.stats['errors']}, "
+                f"Images: {self.stats['images']}, "
+                f"pdfs: {self.stats['pdfs']}, "
+                f"videos: {self.stats['videos']}, "
+                f"documents: {self.stats['documents']}, "
+                f"archives: {self.stats['archives']}, "
+                f"other: {self.stats['other']}"
+            )
+        )
+    def record_move(self, destination):
+        self.stats["moved"] += 1
+        category = Path(destination).parent.name.lower()
+        if category in self.stats:
+            self.stats[category] += 1
+        else:
+            self.stats["other"] += 1
+        self.refresh_stats_ui()
+
+    def record_skip(self):
+        self.stats["skipped"] += 1
+        self.refresh_stats_ui()
+
+    def record_error(self):
+        self.stats["errors"] += 1
+        self.refresh_stats_ui()
+
     def log(self, message):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] {message}"
@@ -189,6 +285,7 @@ class App:
                 destination = move_file(item, inbox_folder)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
+                    self.record_move(destination)
 
     def start_clicked(self):
         if self.observer is not None:
@@ -199,9 +296,9 @@ class App:
         folder.mkdir(parents=True, exist_ok=True)
 
         self.process_existing_files(folder)
-        self.observer = startWatcher(folder, self.log)
+        self.observer = startWatcher(folder, self.log, self.record_move, self.record_skip, self.record_error)
 
-        self.status_var.set(f"watching {folder}")
+        self.set_status(f"watching {folder}", self.success)
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
         self.log(f"started watching {folder}")
@@ -211,7 +308,7 @@ class App:
             return
         stop_watcher(self.observer)
         self.observer = None
-        self.status_var.set("status: stopped")
+        self.set_status("stopped", self.danger)
         self.start_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.log("Stopped watching.")
