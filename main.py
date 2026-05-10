@@ -155,6 +155,10 @@ class App:
         self.style.configure("Title.TLabel", background=self.bg, foreground=self.text)
         self.style.configure("Sub.TLabel", background=self.bg, foreground=self.muted)
         self.style.configure("CardLabel.TLabel", background=self.card, foreground=self.text)
+        self.style.configure("Primary.TButton", foreground="white", background=self.accent, padding=(12,6))
+        self.style.map("Primary.TButton", background=[("active", "#1198e0"), ("disabled", "#a3a8b2")])
+        self.style.configure("Secondary.TButton", foreground=self.text, background="#e9e9eb", padding=(12, 6))
+        self.style.map("Secondary.TButton", background=[("active", "#d1d5db"), ("disabled", "#f8f9fa")])
 
         self.observer = None
         self.log_file = "log.log"
@@ -174,20 +178,20 @@ class App:
         row = ttk.Frame(card, style="Card.TFrame")
         row.pack(fill="x", pady=(6, 0))
 
-        self.folder_entry = tk.Entry(row, textvariable=self.folder_var)
+        self.folder_entry = ttk.Entry(row, textvariable=self.folder_var)
         self.folder_entry.pack(side="left", fill="x", expand=True)
 
-        tk.Button(row, text="Browse", command=self.browse_folder, style="Secondary.TButton").pack(side="left", padx=(8,0))
+        ttk.Button(row, text="Browse", command=self.browse_folder, style="Secondary.TButton").pack(side="left", padx=(8,0))
 
-        control = tk.Frame(shell, style="Shell.TFrame")
+        control = ttk.Frame(shell, style="Shell.TFrame")
         control.pack(fill="x", pady=(0, 10))
         
-        self.start_button = tk.Button(control, text="start", command=self.start_clicked, style="Primary.TButton")
+        self.start_button = ttk.Button(control, text="start", command=self.start_clicked, style="Primary.TButton")
         self.start_button.pack(side="left")
-        self.stop_button = tk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
+        self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
-        self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
+        self.status_label = ttk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10,)
         self.status_label.pack(side="left", padx=12)
         self.log_box = scrolledtext.ScrolledText(shell, height=18, bg="white", fg=self.text, insertbackground=self.text, relief="flat", borderwidth=1, padx=10, pady=10)
         self.log_box.pack(fill="both", expand=True)
