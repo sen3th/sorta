@@ -299,9 +299,10 @@ class App:
         self.status_label.config(text=text, fg=color or self.muted)
     
     def refresh_stats_ui(self):
+        total_size = format_bytes(self.stats["bytes_moved"])
         self.stats_label.config(
             text=(
-                f"moved: {self.stats['moved']}, "
+                f"moved: {self.stats['moved']} ({total_size}),"
                 f"skipped: {self.stats['skipped']}, "
                 f"errors: {self.stats['errors']}, "
                 f"Images: {self.stats['images']}, "
