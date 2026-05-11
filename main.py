@@ -178,6 +178,12 @@ def find_duplicatein_folder(target_folder, src_hash, src_size):
             return candidate
     return None
 
+def handle_duplicate(src_path,existing_path, inbox_folder):
+    trash = trash_folder(inbox_folder)
+    destination = createSafeDestination(trash, Path(src_path).name)
+    shutil.move(str(src_path), str(destination))
+    return destination
+
 class App:
     def __init__(self, root):
         self.root = root
