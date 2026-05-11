@@ -239,6 +239,7 @@ class App:
 
         self.observer = None
         self.log_file = "log.log"
+        self.move_history = []
 
         self.stats ={
             "moved": 0,
