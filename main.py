@@ -200,6 +200,13 @@ def handle_duplicate(src_path,existing_path, inbox_folder):
     shutil.move(str(src_path), str(destination))
     return destination
 
+def format_bytes(bytes_count):
+    for unit in ["B", "KB", "MB", "GB"]:
+        if bytes_count<1024:
+            return f"{bytes_count:.1f}{unit}"
+        bytes_count /= 1024
+    return f"{bytes_count:.1f}TB"
+
 class App:
     def __init__(self, root):
         self.root = root
