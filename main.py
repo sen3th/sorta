@@ -200,6 +200,13 @@ def handle_duplicate(src_path,existing_path, inbox_folder):
     shutil.move(str(src_path), str(destination))
     return destination
 
+def format_bytes(bytes_count):
+    for unit in ["B", "KB", "MB", "GB"]:
+        if bytes_count<1024:
+            return f"{bytes_count:.1f}{unit}"
+        bytes_count /= 1024
+    return f"{bytes_count:.1f}TB"
+
 class App:
     def __init__(self, root):
         self.root = root
@@ -243,6 +250,7 @@ class App:
             "documents": 0,
             "archives": 0,
             "other": 0,
+            "bytes_moved": 0,
         }
 
         self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
@@ -291,9 +299,10 @@ class App:
         self.status_label.config(text=text, fg=color or self.muted)
     
     def refresh_stats_ui(self):
+        total_size = format_bytes(self.stats["bytes_moved"])
         self.stats_label.config(
             text=(
-                f"moved: {self.stats['moved']}, "
+                f"moved: {self.stats['moved']} ({total_size}),"
                 f"skipped: {self.stats['skipped']}, "
                 f"errors: {self.stats['errors']}, "
                 f"Images: {self.stats['images']}, "
@@ -311,6 +320,11 @@ class App:
             self.stats[category] += 1
         else:
             self.stats["other"] += 1
+        try:
+            file_size = Path(destination).stat().st_size
+            self.stats["bytes_moved"] += file_size
+        except OSError:
+            pass
         self.refresh_stats_ui()
 
     def record_skip(self):
