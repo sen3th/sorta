@@ -6,6 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
+import hashlib
 
 class InboxHandler(FileSystemEventHandler):
     def __init__(self, inbox_folder, logger, on_move, on_skip, on_error):
@@ -27,7 +28,7 @@ class InboxHandler(FileSystemEventHandler):
             return
         
         try:
-            destination = move_file(file_path, self.inbox_folder)
+            destination = move_file(file_path, self.inbox_folder, dedupe=True)
             if destination:
                 self.logger(f"moved file {file_path.name} to  {destination}")
                 self.on_move(destination)
@@ -84,12 +85,28 @@ def createSafeDestination(target_folder, file_name):
             return new_destination
         counter += 1
         
-def move_file(file_path, inbox_folder):
+def move_file(file_path, inbox_folder, dedupe=True):
     file_path = Path(file_path)
     if not file_path.is_file():
         return None
     category = get_filecategory(file_path)
     target_folder = make_target_folder(inbox_folder, category)
+
+    if dedupe:
+        try:
+            src_size = file_path.stat().st_size
+            src_hash = hash(file_path)
+            duplicate = find_duplicatein_folder(target_folder, src_hash, src_size)
+            if duplicate:
+                duplication_destination = handle_duplicate(file_path, duplicate, inbox_folder)
+                return duplication_destination
+        except Exception as e:
+            pass
+
+        destination = createSafeDestination(target_folder, file_path.name)
+        shutil.move(str(file_path), str(destination))
+        return destination
+
     destination = createSafeDestination(target_folder, file_path.name)
     shutil.move(str(file_path), str(destination))
     return destination
@@ -142,6 +159,46 @@ def is_file_complete(path, stable_seconds=2, timeout=30):
         last_size = size
         time.sleep(0.5)
     return False
+
+def hash(path, chunk_size=65536):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_size), b""):
+            h.update(chunk)
+        return h.hexdigest()
+
+def trash_folder(inbox_folder):
+    date = datetime.now().strftime("%Y-%m-%d")
+    trash = Path(inbox_folder) / ".Trash" / date
+    trash.mkdir(parents=True, exist_ok=True)
+    return trash
+
+def find_duplicatein_folder(target_folder, src_hash, src_size):
+    target_folder = Path(target_folder)
+    if not target_folder.exists():
+        return None
+    
+    for candidate in target_folder.iterdir():
+        if not candidate.is_file():
+            continue
+        try:
+            if candidate.stat().st_size != src_size:
+                continue
+        except OSError:
+            continue
+        try:
+            candidate_hash = hash(candidate)
+        except Exception:
+            continue
+        if candidate_hash == src_hash:
+            return candidate
+    return None
+
+def handle_duplicate(src_path,existing_path, inbox_folder):
+    trash = trash_folder(inbox_folder)
+    destination = createSafeDestination(trash, Path(src_path).name)
+    shutil.move(str(src_path), str(destination))
+    return destination
 
 class App:
     def __init__(self, root):
@@ -282,7 +339,7 @@ class App:
         inbox_folder.mkdir(parents=True, exist_ok=True)
         for item in inbox_folder.iterdir():
             if item.is_file():
-                destination = move_file(item, inbox_folder)
+                destination = move_file(item, inbox_folder, dedupe=True)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
                     self.record_move(destination)
