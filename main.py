@@ -319,6 +319,11 @@ class App:
             self.stats[category] += 1
         else:
             self.stats["other"] += 1
+        try:
+            file_size = Path(destination).stat().st_size
+            self.stats["bytes_moved"] += file_size
+        except OSError:
+            pass
         self.refresh_stats_ui()
 
     def record_skip(self):
