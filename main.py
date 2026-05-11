@@ -339,7 +339,7 @@ class App:
         inbox_folder.mkdir(parents=True, exist_ok=True)
         for item in inbox_folder.iterdir():
             if item.is_file():
-                destination = move_file(item, inbox_folder)
+                destination = move_file(item, inbox_folder, dedupe=True)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
                     self.record_move(destination)
