@@ -85,12 +85,28 @@ def createSafeDestination(target_folder, file_name):
             return new_destination
         counter += 1
         
-def move_file(file_path, inbox_folder):
+def move_file(file_path, inbox_folder, dedupe=True):
     file_path = Path(file_path)
     if not file_path.is_file():
         return None
     category = get_filecategory(file_path)
     target_folder = make_target_folder(inbox_folder, category)
+
+    if dedupe:
+        try:
+            src_size = file_path.stat().st_size
+            src_hash = hash(file_path)
+            duplicate = find_duplicatein_folder(target_folder, src_hash, src_size)
+            if duplicate:
+                duplication_destination = handle_duplicate(file_path, duplicate, inbox_folder)
+                return duplication_destination
+        except Exception as e:
+            pass
+
+        destination = createSafeDestination(target_folder, file_path.name)
+        shutil.move(str(file_path), str(destination))
+        return destination
+
     destination = createSafeDestination(target_folder, file_path.name)
     shutil.move(str(file_path), str(destination))
     return destination
