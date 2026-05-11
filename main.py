@@ -282,6 +282,9 @@ class App:
         self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
+        self.undo_button = ttk.Button(control, text="undo last move", command=self.undo_last_move, style="Secondary.TButton")
+        self.undo_button.pack(side="left", padx=8)
+
         self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10, font=("Segoe UI", 11))
         self.status_label.pack(side="left", padx=12)
         self.stats_label = tk.Label(
