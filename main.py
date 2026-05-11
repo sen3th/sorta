@@ -151,6 +151,12 @@ def hash(path, chunk_size=65536):
             h.update(chunk)
         return h.hexdigest()
 
+def trash_folder(inbox_folder):
+    date = datetime.now().strftime("%Y-%m-%d")
+    trash = Path(inbox_folder) / ".Trash" / date
+    trash.mkdir(parents=True, exist_ok=True)
+    return trash
+
 class App:
     def __init__(self, root):
         self.root = root
