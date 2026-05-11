@@ -243,6 +243,7 @@ class App:
             "documents": 0,
             "archives": 0,
             "other": 0,
+            "bytes_moved": 0,
         }
 
         self.folder_var = tk.StringVar(value=str(Path("inbox").resolve()))
