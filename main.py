@@ -157,6 +157,27 @@ def trash_folder(inbox_folder):
     trash.mkdir(parents=True, exist_ok=True)
     return trash
 
+def find_duplicatein_folder(target_folder, src_hash, src_size):
+    target_folder = Path(target_folder)
+    if not target_folder.exists():
+        return None
+    
+    for candidate in target_folder.iterdir():
+        if not candidate.is_file():
+            continue
+        try:
+            if candidate.stat().st_size != src_size:
+                continue
+        except OSError:
+            continue
+        try:
+            candidate_hash = hash(candidate)
+        except Exception:
+            continue
+        if candidate_hash == src_hash:
+            return candidate
+    return None
+
 class App:
     def __init__(self, root):
         self.root = root
