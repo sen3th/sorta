@@ -28,7 +28,7 @@ class InboxHandler(FileSystemEventHandler):
             return
         
         try:
-            destination = move_file(file_path, self.inbox_folder)
+            destination = move_file(file_path, self.inbox_folder, dedupe=True)
             if destination:
                 self.logger(f"moved file {file_path.name} to  {destination}")
                 self.on_move(destination)
