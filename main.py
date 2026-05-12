@@ -352,6 +352,41 @@ class App:
         self.stats["errors"] += 1
         self.refresh_stats_ui()
 
+    def undo_last_move(self):
+        if not self.move_history:
+            messagebox.showinfo("Undo", "nothing to undo")
+            return
+        
+        last = self.move_history.pop()
+        src = Path(last["src"])
+        dst = Path(last["dst"])
+
+        if not dst.exists():
+            self.log(f"destination doesn't exist? {dst}")
+            messagebox.showwarning("undo", "file doesn't exist")
+            return
+        
+        restore_parent = src.parent
+        restore_parent.mkdir(parents=True, exist_ok=True)
+        restore_destination = createSafeDestination(restore_parent, src.name)
+        try:
+            shutil.move(str(dst), str(restore_destination))
+            self.log(f"restored {dst.name} to {restore_destination}")
+
+            self.stats["moved"] = max(0, self.stats["moved"] - 1)
+            category = last.get("category", "other")
+            if category in self.stats:
+                self.stats[category] = max(0, self.stats[category]-1)
+            else:
+                self.stats["other"] = max(0, self.stats["other"] -1)
+
+            size = int(last.get("size", 0))
+            self.stats["bytes_moved"] = max(0, self.stats["bytes_moved"] - size)
+            self.refresh_stats_ui()
+        except Exception as e:
+            self.log(f"undo failed for {dst}: {e}")
+            messagebox.showerror("error", str(e))
+
     def log(self, message):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] {message}"
