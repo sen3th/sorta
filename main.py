@@ -31,7 +31,7 @@ class InboxHandler(FileSystemEventHandler):
             destination = move_file(file_path, self.inbox_folder, dedupe=True)
             if destination:
                 self.logger(f"moved file {file_path.name} to  {destination}")
-                self.on_move(destination)
+                self.on_move(file_path, destination)
         except Exception as e:
             self.logger(f"error occurred while moving file {file_path.name}: {e}")
             self.on_error()
@@ -239,6 +239,7 @@ class App:
 
         self.observer = None
         self.log_file = "log.log"
+        self.move_history = []
 
         self.stats ={
             "moved": 0,
@@ -281,6 +282,9 @@ class App:
         self.stop_button = ttk.Button(control, text="stop", command=self.stop_clicked, state="disabled", style="Secondary.TButton")
         self.stop_button.pack(side="left", padx=8)
 
+        self.undo_button = ttk.Button(control, text="undo last move", command=self.undo_last_move, style="Secondary.TButton")
+        self.undo_button.pack(side="left", padx=8)
+
         self.status_label = tk.Label(control, text="idling ... .", bg=self.bg, fg=self.muted, padx=10, font=("Segoe UI", 11))
         self.status_label.pack(side="left", padx=12)
         self.stats_label = tk.Label(
@@ -313,18 +317,31 @@ class App:
                 f"other: {self.stats['other']}"
             )
         )
-    def record_move(self, destination):
+    def record_move(self, src_path, destination):
+        src_path = Path(src_path)
+        destination = Path(destination)
+
         self.stats["moved"] += 1
         category = Path(destination).parent.name.lower()
         if category in self.stats:
             self.stats[category] += 1
         else:
             self.stats["other"] += 1
+
+        file_size = 0
         try:
             file_size = Path(destination).stat().st_size
             self.stats["bytes_moved"] += file_size
         except OSError:
             pass
+
+        self.move_history.append({
+            "src": src_path,
+            "dst": destination,
+            "size": file_size,
+            "category": category,
+        })
+
         self.refresh_stats_ui()
 
     def record_skip(self):
@@ -334,6 +351,41 @@ class App:
     def record_error(self):
         self.stats["errors"] += 1
         self.refresh_stats_ui()
+
+    def undo_last_move(self):
+        if not self.move_history:
+            messagebox.showinfo("Undo", "nothing to undo")
+            return
+        
+        last = self.move_history.pop()
+        src = Path(last["src"])
+        dst = Path(last["dst"])
+
+        if not dst.exists():
+            self.log(f"destination doesn't exist? {dst}")
+            messagebox.showwarning("undo", "file doesn't exist")
+            return
+        
+        restore_parent = src.parent
+        restore_parent.mkdir(parents=True, exist_ok=True)
+        restore_destination = createSafeDestination(restore_parent, src.name)
+        try:
+            shutil.move(str(dst), str(restore_destination))
+            self.log(f"restored {dst.name} to {restore_destination}")
+
+            self.stats["moved"] = max(0, self.stats["moved"] - 1)
+            category = last.get("category", "other")
+            if category in self.stats:
+                self.stats[category] = max(0, self.stats[category]-1)
+            else:
+                self.stats["other"] = max(0, self.stats["other"] -1)
+
+            size = int(last.get("size", 0))
+            self.stats["bytes_moved"] = max(0, self.stats["bytes_moved"] - size)
+            self.refresh_stats_ui()
+        except Exception as e:
+            self.log(f"undo failed for {dst}: {e}")
+            messagebox.showerror("error", str(e))
 
     def log(self, message):
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -356,7 +408,7 @@ class App:
                 destination = move_file(item, inbox_folder, dedupe=True)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
-                    self.record_move(destination)
+                    self.record_move(item, destination)
 
     def start_clicked(self):
         if self.observer is not None:
