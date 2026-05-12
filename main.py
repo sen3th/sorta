@@ -31,7 +31,7 @@ class InboxHandler(FileSystemEventHandler):
             destination = move_file(file_path, self.inbox_folder, dedupe=True)
             if destination:
                 self.logger(f"moved file {file_path.name} to  {destination}")
-                self.on_move(destination)
+                self.on_move(file_path, destination)
         except Exception as e:
             self.logger(f"error occurred while moving file {file_path.name}: {e}")
             self.on_error()
@@ -317,18 +317,31 @@ class App:
                 f"other: {self.stats['other']}"
             )
         )
-    def record_move(self, destination):
+    def record_move(self, src_path, destination):
+        src_path = Path(src_path)
+        destination = Path(destination)
+
         self.stats["moved"] += 1
         category = Path(destination).parent.name.lower()
         if category in self.stats:
             self.stats[category] += 1
         else:
             self.stats["other"] += 1
+
+        file_size = 0
         try:
             file_size = Path(destination).stat().st_size
             self.stats["bytes_moved"] += file_size
         except OSError:
             pass
+
+        self.move_history.append({
+            "src": src_path,
+            "dst": destination,
+            "size": file_size,
+            "category": category,
+        })
+
         self.refresh_stats_ui()
 
     def record_skip(self):
@@ -360,7 +373,7 @@ class App:
                 destination = move_file(item, inbox_folder, dedupe=True)
                 if destination:
                     self.log(f"moved {item.name} to {destination}")
-                    self.record_move(destination)
+                    self.record_move(item, destination)
 
     def start_clicked(self):
         if self.observer is not None:
