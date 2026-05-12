@@ -7,6 +7,7 @@ Sorta is a python app made to sort files in a given directory. It sorts files ba
 - gui for easy use
 - cross platform with python
 - log file in development for debugging
+- undo last action
 
 ## Demo
 <img src="assets/demo.PNG" width="400">
